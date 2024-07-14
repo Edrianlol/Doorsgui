@@ -1,0 +1,127 @@
+-- Create Screen GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "EdrianDoorsGUI"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 400)
+frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+frame.BackgroundColor3 = Color3.new(0, 0, 0) -- Black background color
+frame.Parent = screenGui
+
+-- Create Title
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "EdrianDoors"
+titleLabel.TextColor3 = Color3.new(0, 0, 1) -- Blue text
+titleLabel.TextScaled = true
+titleLabel.Parent = frame
+
+-- Create Buttons
+local function createButton(text, position)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 200, 0, 50)
+    button.Position = UDim2.new(0.5, -100, position, 0)
+    button.BackgroundColor3 = Color3.new(0, 1, 0) -- Green buttons
+    button.Text = text
+    button.TextColor3 = Color3.new(0, 0, 0)
+    button.TextScaled = true
+    button.Parent = frame
+    return button
+end
+
+local speedButton = createButton("Speed", 0.2)
+local highlightButton = createButton("Highlights", 0.4)
+local reviveButton = createButton("Revive", 0.6)
+
+-- Make Frame Movable
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Button Functionality
+speedButton.MouseButton1Click:Connect(function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 30
+end)
+
+highlightButton.MouseButton1Click:Connect(function()
+    for _, monster in pairs(workspace:GetChildren()) do
+        if monster:FindFirstChild("Humanoid") and monster:FindFirstChild("HumanoidRootPart") then
+            local highlight = Instance.new("Highlight")
+            highlight.Adornee = monster
+            highlight.Parent = monster
+
+            local label = Instance.new("BillboardGui", monster)
+            label.Size = UDim2.new(0, 100, 0, 50)
+            label.Adornee = monster.HumanoidRootPart
+
+            local textLabel = Instance.new("TextLabel", label)
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.BackgroundTransparency = 1
+            textLabel.Text = "Monster"
+            textLabel.TextColor3 = Color3.new(1, 0, 0)
+            textLabel.TextScaled = true
+        end
+    end
+
+    for _, item in pairs(workspace:GetChildren()) do
+        if item:IsA("Tool") or item:IsA("Part") then
+            local highlight = Instance.new("Highlight")
+            highlight.Adornee = item
+            highlight.Parent = item
+
+            local label = Instance.new("BillboardGui", item)
+            label.Size = UDim2.new(0, 100, 0, 50)
+            label.Adornee = item
+
+            local textLabel = Instance.new("TextLabel", label)
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.BackgroundTransparency = 1
+            textLabel.Text = "Item"
+            textLabel.TextColor3 = Color3.new(0, 1, 0)
+            textLabel.TextScaled = true
+        end
+    end
+end)
+
+reviveButton.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.Health = player.Character.Humanoid.MaxHealth
+    end
+end)
